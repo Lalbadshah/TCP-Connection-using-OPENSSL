@@ -85,27 +85,30 @@ int main(int count, char *strings[])
         printf("usage: %s <hostname> <portnum>\n", strings[0]);
         exit(0);
     }
+    printf("HELLO!!\n");
     SSL_library_init();
     hostname=strings[1];
     portnum=strings[2];
- 
+    printf("HELLO!!\n");
     ctx = InitCTX();
     server = OpenConnection(hostname, atoi(portnum));
     ssl = SSL_new(ctx);      /* create new SSL connection state */
     SSL_set_fd(ssl, server);    /* attach the socket descriptor */
+    printf("HELLO!!\n");
     if ( SSL_connect(ssl) == FAIL )   /* perform the connection */
         ERR_print_errors_fp(stderr);
     else
-    {   
-        
+    {   printf("Connected with %s encryption\n", SSL_get_cipher(ssl));
+        ShowCerts(ssl); 
+        while(1){
         printf("Client:");
-        fscanf(stdin,msg,0);
-        printf("Connected with %s encryption\n", SSL_get_cipher(ssl));
-        ShowCerts(ssl);        /* get any certs */
+        fgets(msg,sizeof(msg),stdin);
+               /* get any certs */
         SSL_write(ssl, msg, strlen(msg));   /* encrypt & send message */
-        bytes = SSL_read(ssl, buf, sizeof(buf)); /* get reply & decrypt */
+        bytes = SSL_read(ssl, buf, sizeof(buf)-1); /* get reply & decrypt */
         buf[bytes] = 0;
-        printf("Received: \"%s\"\n", buf);
+        printf("SERVER:%s", buf);
+		}
         SSL_free(ssl);        /* release connection state */
     }
     close(server);         /* close socket */

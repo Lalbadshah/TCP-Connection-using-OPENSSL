@@ -115,16 +115,19 @@ void Servlet(SSL* ssl) /* Serve the connection -- threadable */
     else
     {
         ShowCerts(ssl);        /* get any certificates */
+   while(1)
+      {
         bytes = SSL_read(ssl, buf, sizeof(buf)); /* get request */
         if ( bytes > 0 )
         {
             buf[bytes] = 0;
-            printf("Client msg: \"%s\"\n", buf);
-            sprintf(reply, HTMLecho, buf);   /* construct reply */
+            printf("Client msg:%s", buf);
+            strcpy(reply,buf);   /* construct reply */
             SSL_write(ssl, reply, strlen(reply)); /* send reply */
         }
         else
             ERR_print_errors_fp(stderr);
+      }
     }
     sd = SSL_get_fd(ssl);       /* get socket connection */
     SSL_free(ssl);         /* release SSL state */
@@ -152,8 +155,7 @@ int main(int count, char *strings[])
     ctx = InitServerCTX();        /* initialize SSL */
     LoadCertificates(ctx, "mycert.pem", "mycert.pem"); /* load certs */
     server = OpenListener(atoi(portnum));    /* create server socket */
-    while (1)
-    {   struct sockaddr_in addr;
+       struct sockaddr_in addr;
         socklen_t len = sizeof(addr);
         SSL *ssl;
  
@@ -162,7 +164,7 @@ int main(int count, char *strings[])
         ssl = SSL_new(ctx);              /* get new SSL state with context */
         SSL_set_fd(ssl, client);      /* set connection socket to SSL state */
         Servlet(ssl);         /* service connection */
-    }
+    
     close(server);          /* close server socket */
     SSL_CTX_free(ctx);         /* release context */
 }
